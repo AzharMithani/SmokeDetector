@@ -1,31 +1,22 @@
 import shlex
 import subprocess as sp
-import platform
 from typing import AnyStr, List, NamedTuple, Optional, Union
-
-
-if 'windows' not in platform.platform().lower():
-    raise NotImplementedError("Use the `sh` module's `git` from PyPI instead!")
 
 
 ProcReturn = NamedTuple('ProcReturn', [('stdout', str), ('stderr', str), ('code', int)])
 
-GitError = sp.CalledProcessError
-
 
 def _call_process(execcmd: AnyStr, _ok_code: Union[int, List[int]] = None, return_data: bool = False) -> \
         Optional[ProcReturn]:
-    proc = sp.Popen(shlex.split(execcmd), stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
-    (stdout, stderr) = proc.communicate()
-    retcode = proc.returncode
-    if retcode != 0:
-        if _ok_code and retcode in _ok_code:
+    proc = sp.run(shlex.split(execcmd), stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
+    if proc.returncode != 0:
+        if _ok_code and proc.returncode in _ok_code:
             pass
         else:
-            raise GitError(retcode, execcmd, stdout, stderr)
+            raise sp.CalledProcessError(proc.returncode, execcmd, proc.stdout, proc.stderr)
 
     if return_data:
-        return ProcReturn(stdout, stderr, retcode)
+        return ProcReturn(proc.stdout.decode('utf-8'), proc.stderr.decode('utf-8'), proc.returncode)
 
 
 class Git:
