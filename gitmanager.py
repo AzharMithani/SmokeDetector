@@ -6,21 +6,21 @@ import json
 from datetime import datetime
 from threading import Lock
 
+import sys
+
 import regex
 import requests
 from requests.auth import HTTPBasicAuth
 
 from urllib.parse import quote_plus
 from globalvars import GlobalVars
-if GlobalVars.on_windows:
-    # noinspection PyPep8Naming
-    from classes import Git as git, GitError
-else:
-    from sh.contrib import git
-    from sh import ErrorReturnCode as GitError
+# noinspection PyPep8Naming
+from classes import Git, GitError
 
 from helpers import log, log_exception, only_blacklists_changed
 from blacklists import *
+
+git = Git()
 
 
 class GitHubManager:
@@ -195,7 +195,7 @@ class GitManager:
                         # Capture any other invalid response cases.
                         return (False, "A bad or invalid reply was received from GH, the message was: %s" %
                                 response['message'])
-        except Exception as err:
+        except Exception:
             log_exception(*sys.exc_info())
             return (False, "Git functions failed for unspecified reasons, details may be in error log.")
         finally:

@@ -5,6 +5,8 @@ from typing import AnyStr, List, NamedTuple, Optional, Union
 
 ProcReturn = NamedTuple('ProcReturn', [('stdout', str), ('stderr', str), ('code', int)])
 
+GitError = sp.CalledProcessError
+
 
 def _call_process(execcmd: AnyStr, _ok_code: Union[int, List[int]] = None, return_data: bool = False) -> \
         Optional[ProcReturn]:
@@ -20,6 +22,21 @@ def _call_process(execcmd: AnyStr, _ok_code: Union[int, List[int]] = None, retur
 
 
 class Git:
+
+    def __call__(self, *args, **kwargs):
+        print(args)
+        try:
+            if args[0].lower() == 'remote.update' or (args[0] == 'remote' and args[1] == 'update'):
+                if args[0] == 'remote.update':
+                    self.remote.update(*args[1:])
+                elif args[0] == 'remote' and args[1] == 'update':
+                    self.remote.update(*args[2:])
+            else:
+                return getattr(self, args[0])(*args[1:])
+        except AttributeError:
+            raise NotImplementedError("Requested method '{}' not yet implemented, "
+                                      "or invalid git subcommand.".format(args[0]))
+
     # add
     @staticmethod
     def add(*args: str) -> None:
@@ -46,7 +63,7 @@ class Git:
 
     # Config
     @staticmethod
-    def config(*args: str, _ok_code: int = 0) -> None:
+    def config(*args: str, _ok_code: Union[int, List[int]] = 0) -> None:
         execcmd = "git config " + " ".join(args)
         _call_process(execcmd, _ok_code=_ok_code)
 
@@ -75,6 +92,7 @@ class Git:
         _call_process(execcmd)
 
     # remote.update
+    # noinspection PyPep8Naming
     class remote:  # noqa: N801
         @staticmethod
         def update(*args: str) -> None:
