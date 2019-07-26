@@ -81,6 +81,7 @@ cookies.p
 
 # - Newer than newer format pickle files:
 pickles/
+bodyfetcherQueueTimings.csv
 
 # Temp files for communication between nocrash.py and ws.py
 launch.txt
