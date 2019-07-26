@@ -329,8 +329,15 @@ def store_bodyfetcher_max_ids():
     _dump_pickle("bodyfetcherMaxIds.p", GlobalVars.bodyfetcher.previous_max_ids)
 
 
-def store_queue_timings():
-    _dump_pickle("bodyfetcherQueueTimings.p", GlobalVars.bodyfetcher.queue_timings)
+def store_queue_timings(post_add_times, pop_time, site):
+    with open("bodyfetcherQueueTimings.csv", "a") as f: # TODO: Check open type
+        for add_time in post_add_times:
+            try:
+                seconds_in_queue = (pop_time - add_time).total_seconds()
+                data = "{},{}\n".format(site, seconds_in_queue)
+                f.write(data)
+            except Exception:  # XXX: What sort of exceptions possible?
+                continue  # Skip to next item if we've got invalid data or missing values.
 
 
 # methods that help avoiding reposting alerts:

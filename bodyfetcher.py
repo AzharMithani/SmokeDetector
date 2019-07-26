@@ -20,7 +20,6 @@ from itertools import chain
 class BodyFetcher:
     queue = {}
     previous_max_ids = {}
-    queue_timings = {}
 
     special_cases = {
         "pt.stackoverflow.com": 10,
@@ -141,17 +140,7 @@ class BodyFetcher:
         post_add_times = [v for k, v in new_posts.items()]
         pop_time = datetime.utcnow()
 
-        for add_time in post_add_times:
-            try:
-                seconds_in_queue = (pop_time - add_time).total_seconds()
-                if site in self.queue_timings:
-                    self.queue_timings[site].append(seconds_in_queue)
-                else:
-                    self.queue_timings[site] = [seconds_in_queue]
-            except KeyError:  # XXX: Any other possible exception?
-                continue  # Skip to next item if we've got invalid data or missing values.
-
-        store_queue_timings()
+        store_queue_timings(post_add_times, pop_time, site)
 
         self.queue_timing_modify_lock.release()
         self.max_ids_modify_lock.acquire()
